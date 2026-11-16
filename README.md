@@ -1,5 +1,7 @@
 # QoreStamp — a post-quantum notary on QoreChain
 
+[![Built on QoreChain](https://build.qorechain.io/badge/qorestamp-2.svg)](https://build.qorechain.io/p/qorestamp-2)
+
 Stamp the SHA-256 hash of any document on the QoreChain testnet to prove it
 existed at a given time. The document never leaves your machine — only its
 32-byte hash is stored on-chain. Anyone can verify a stamp later by hashing
@@ -7,6 +9,8 @@ the document and looking it up.
 
 Built for the **QoreChain Developer Fest ("Build Before Q-Day")**, Quantum
 Pass category (4 November – 2 December 2026).
+
+Demo video (86 seconds): <https://youtu.be/PRP7AbKvdCU>
 
 ## Why QoreChain?
 
