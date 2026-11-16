@@ -1,0 +1,16 @@
+# Secrets — never commit. The deployer key in .env is TESTNET ONLY.
+.env
+.env.local
+
+# Dependencies and build output
+node_modules/
+out/
+cache/
+lib/
+broadcast/
+web/node_modules/
+web/dist/
+
+# Editor / OS
+.DS_Store
+*.swp
