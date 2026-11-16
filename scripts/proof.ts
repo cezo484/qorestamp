@@ -8,13 +8,18 @@
  *
  * Requires a funded account with a registered ML-DSA-87 key. Testnet only.
  *
+ * Signing goes through EthNativeSigner (the unified-account signer, same as
+ * window.ts): the generic directSignerFromPrivateKey derives the standard
+ * Cosmos ripemd160 address, which is a DIFFERENT qor1 address than the
+ * unified eth-native account and does not exist on chain.
+ *
  * Usage: BBQD_LINK_CODE=<code from build.qorechain.io> npx tsx --env-file=.env scripts/proof.ts
  */
 import { writeFileSync } from "node:fs";
+import { StargateClient } from "@cosmjs/stargate";
 import {
-  createClient,
+  EthNativeSigner,
   deriveUnifiedAccount,
-  directSignerFromPrivateKey,
   getNetwork,
 } from "@qorechain/sdk";
 
@@ -28,31 +33,65 @@ if (!code) {
 const mnemonic = process.env.QORE_MNEMONIC?.trim();
 if (!mnemonic) throw new Error("Set QORE_MNEMONIC in .env");
 
-const net = getNetwork("testnet");
-const client = createClient({ network: "testnet" });
-const account = await deriveUnifiedAccount(mnemonic, 0);
-const signer = await directSignerFromPrivateKey(
-  Uint8Array.from(Buffer.from(account.privateKey.slice(2), "hex")),
-  "qor",
-);
-const tx = await client.connectTx(signer, { pqcKeypair: account.pqc });
+const n = getNetwork("testnet");
+const net = {
+  chainId: n.chainId,
+  evmChainId: n.evmChainId,
+  rest: process.env.QORE_REST_URL?.trim() || n.endpoints.rest,
+  rpc: process.env.QORE_RPC_URL?.trim() || n.endpoints.rpc,
+};
+
+const acc = await deriveUnifiedAccount(mnemonic, 0);
+
+/** account_number and sequence over REST; zero for an account never seen. */
+async function accountSequence(rest: string, address: string): Promise<{ accountNumber: bigint; sequence: bigint }> {
+  const res = await fetch(`${rest}/cosmos/auth/v1beta1/accounts/${address}`);
+  if (res.status === 404) {
+    throw new Error(`${address} does not exist on chain yet: send it some QOR first`);
+  }
+  if (!res.ok) throw new Error(`account query failed: HTTP ${res.status}`);
+  const body = (await res.json()) as { account?: Record<string, unknown> };
+  const a = body.account as { account_number?: string; sequence?: string } | undefined;
+  return {
+    accountNumber: BigInt(a?.account_number ?? "0"),
+    sequence: BigInt(a?.sequence ?? "0"),
+  };
+}
 
 const memo = `bbqd-link:${code}`;
-const res = await tx.bankSend(account.cosmos, [{ denom: "uqor", amount: "1" }], { memo });
-if (res.code !== 0) throw new Error(`proof tx failed with code ${res.code}`);
+const { accountNumber, sequence } = await accountSequence(net.rest, acc.cosmos);
+const signer = new EthNativeSigner(acc, { signMode: "hybrid", rest: net.rest });
+const transport = await StargateClient.connect(net.rpc);
+try {
+  const res = await signer.bankSend(
+    transport,
+    acc.cosmos,
+    [{ denom: "uqor", amount: "1" }],
+    {
+      chainId: net.chainId,
+      accountNumber,
+      sequence,
+      fee: { amount: [{ denom: "uqor", amount: "100000" }], gas: "800000" },
+      memo,
+    },
+  );
+  if (res.code !== 0) throw new Error(`proof tx failed with code ${res.code}`);
 
-const proof = {
-  network: net.chainId,
-  evmChainId: net.evmChainId,
-  accountCosmos: account.cosmos,
-  accountEvm: account.evm,
-  txHash: res.transactionHash,
-  explorer: `https://explore.qore.network/tx/${res.transactionHash}`,
-  height: res.height ?? null,
-  gasUsed: res.gasUsed?.toString() ?? null,
-  memo,
-  note: "Registration proof for the Developer Fest platform: 1 uqor to self with the bbqd-link memo.",
-};
-writeFileSync(new URL("../proof.json", import.meta.url), JSON.stringify(proof, null, 2) + "\n");
-console.log(`proof sent: ${res.transactionHash}`);
-console.log(`explorer: ${proof.explorer}`);
+  const proof = {
+    network: net.chainId,
+    evmChainId: net.evmChainId,
+    accountCosmos: acc.cosmos,
+    accountEvm: acc.evm,
+    txHash: res.transactionHash,
+    explorer: `https://explore.qore.network/tx/${res.transactionHash}`,
+    height: null,
+    gasUsed: null,
+    memo,
+    note: "Registration proof for the Developer Fest platform: 1 uqor to self with the bbqd-link memo.",
+  };
+  writeFileSync(new URL("../proof.json", import.meta.url), JSON.stringify(proof, null, 2) + "\n");
+  console.log(`proof sent: ${res.transactionHash}`);
+  console.log(`explorer: ${proof.explorer}`);
+} finally {
+  transport.disconnect();
+}

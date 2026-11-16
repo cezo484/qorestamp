@@ -1,0 +1,12 @@
+{
+  "network": "qorechain-diana",
+  "evmChainId": 9800,
+  "accountCosmos": "qor1kz6acdx4zhgg3ecr6gdzys00srfdev5xmn7m80",
+  "accountEvm": "0xb0b5DC34d515D088e703d21A2241eF80D2dCB286",
+  "txHash": "6AE079EC2215B83F283D67B9B5921E2FD3565FD59D8537B8F1EA788D65ECE5E9",
+  "explorer": "https://explore.qore.network/tx/6AE079EC2215B83F283D67B9B5921E2FD3565FD59D8537B8F1EA788D65ECE5E9",
+  "height": 10178901,
+  "gasUsed": null,
+  "memo": "bbqd-link:LHRQ2RrCpxWv",
+  "note": "Registration proof for the Developer Fest platform: 1 uqor to self with the bbqd-link memo."
+}
