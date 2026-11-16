@@ -2,7 +2,7 @@
 
 QoreStamp was built with an AI coding assistant (Muse, a Meta AI agent) as the
 primary author of the code, under the direction and review of the human
-builder, Mehmet Ongan. This file documents the workflow honestly, as the
+builder, cezo484. This file documents the workflow honestly, as the
 Developer Fest's Best AI-Native Build award asks.
 
 ## What the human did
