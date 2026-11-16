@@ -21,12 +21,15 @@ against.
 Network: `qorechain-diana` testnet (EVM chain ID 9800).
 Explorer: <https://explore.qore.network> (switch to Testnet).
 
-<!-- DEPLOYMENT EVIDENCE — filled in after the testnet deploy. -->
-- Contract: *(not deployed yet)*
-- Deploy transaction: *(pending funding)*
-- PQC key registration (first tx, classical-signed): *(pending)*
-- EVM authorisation window (hybrid-signed tx): *(pending)*
-- First stamp transaction: *(pending)*
+<!-- DEPLOYMENT EVIDENCE — deployed on the testnet 16 Nov 2026. -->
+- Contract: `0x0eDcF72466d381573d39919AF1749EF3c91a4828`
+- Deploy transaction: `0xcdb740343394f59e899ae5b5744599332ce52acb68f25d8d9e06f558ac615310` (block 10178487)
+- PQC key registration (first tx, classical-signed): `F85E370B4A0C6DB5230A631E03F977877F059232A46DB110CF0622B46C23C6CA`
+- EVM authorisation window (hybrid-signed tx): `CE54FDF90B778B81BC02269EF217DEA243E865B556B908AB030405A4A578C0E0`
+- Hybrid attestation (1 uqor to self, hybrid-signed): `3929E73994B660AC3EAC7124C5EEEC4A033EA914289F7EFF53C0AFDB6EC55DC3`
+- First stamp transaction: `0xbfeb37af999fcf2741c15ef679b85a163d62d1cba77d135293da5db0a6e63940` (block 10178502, document hash `0x7596599d37c06ccd053802738c97b497cdedf867798facc8415aa1276c2a6c45`)
+
+Evidence files: `deployed.json`, `attestation.json`, `stamp.json`.
 
 ## How it works
 

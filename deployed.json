@@ -1,0 +1,9 @@
+{
+  "network": "qorechain-diana",
+  "evmChainId": 9800,
+  "contract": "0x0edcf72466d381573d39919af1749ef3c91a4828",
+  "deployTxHash": "0xcdb740343394f59e899ae5b5744599332ce52acb68f25d8d9e06f558ac615310",
+  "blockNumber": "10178487",
+  "deployer": "0xb0b5dc34d515d088e703d21a2241ef80d2dcb286",
+  "note": "EVM-lane tx: the QoreChain explorer indexes native-lane txs; verify this one with eth_getTransactionReceipt on https://evm-testnet.qore.host."
+}

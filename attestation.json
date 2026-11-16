@@ -1,0 +1,12 @@
+{
+  "network": "qorechain-diana",
+  "evmChainId": 9800,
+  "accountCosmos": "qor1kz6acdx4zhgg3ecr6gdzys00srfdev5xmn7m80",
+  "accountEvm": "0xb0b5DC34d515D088e703d21A2241eF80D2dCB286",
+  "txHash": "3929E73994B660AC3EAC7124C5EEEC4A033EA914289F7EFF53C0AFDB6EC55DC3",
+  "explorer": "https://explore.qore.network/tx/3929E73994B660AC3EAC7124C5EEEC4A033EA914289F7EFF53C0AFDB6EC55DC3",
+  "height": null,
+  "gasUsed": null,
+  "memo": "QoreStamp hybrid attestation",
+  "note": "Native-lane bank send of 1 uqor to self, signed hybrid (secp256k1 + ML-DSA-87)."
+}

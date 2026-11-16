@@ -1,0 +1,13 @@
+{
+  "network": "qorechain-diana",
+  "evmChainId": 9800,
+  "contract": "0x0edcf72466d381573d39919af1749ef3c91a4828",
+  "message": "QoreStamp first stamp — Build Before Q-Day, Quantum Pass",
+  "documentHash": "0x7596599d37c06ccd053802738c97b497cdedf867798facc8415aa1276c2a6c45",
+  "label": "first stamp",
+  "stampler": "0xb0b5DC34d515D088e703d21A2241eF80D2dCB286",
+  "txHash": "0xbfeb37af999fcf2741c15ef679b85a163d62d1cba77d135293da5db0a6e63940",
+  "blockNumber": "10178502",
+  "gasUsed": "159116",
+  "note": "EVM-lane tx: the QoreChain explorer indexes native-lane txs; verify this one with eth_getTransactionReceipt on https://evm-testnet.qore.host."
+}
