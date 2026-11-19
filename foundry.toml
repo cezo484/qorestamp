@@ -1,16 +1,7 @@
 [profile.default]
-src = "src"
+src = "contracts"
 out = "out"
 libs = ["lib"]
-test = "test"
-script = "script"
-solc_version = "0.8.28"
+solc = "0.8.24"
 optimizer = true
 optimizer_runs = 200
-remappings = ["forge-std/=lib/forge-std/src/"]
-
-# Public QoreChain EVM endpoints. Use them by name:
-#   forge script ... --rpc-url qorechain_testnet
-[rpc_endpoints]
-qorechain = "https://evm.qore.host"
-qorechain_testnet = "https://evm-testnet.qore.host"
