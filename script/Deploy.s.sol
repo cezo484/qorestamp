@@ -2,18 +2,20 @@
 pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
-import {StampRegistry} from "../contracts/StampRegistry.sol";
+import {QoreStamp} from "../src/QoreStamp.sol";
 
-/// @notice Deploy StampRegistry to QoreChain testnet (chain id 9800).
+/// @notice Deploy QoreStamp to QoreChain testnet (chain id 9800).
 /// Reads PRIVATE_KEY from the environment. Before running this, the deploy
 /// account needs testnet QOR from the Dashboard faucet, a registered
 /// post-quantum key and an open EVM authorisation window. See README.md.
+/// (The same contract is deployed by script/QoreStamp.s.sol; this script
+/// is the one the local anvil demo in the README uses.)
 contract Deploy is Script {
-    function run() public returns (StampRegistry registry) {
+    function run() public returns (QoreStamp notary) {
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
-        registry = new StampRegistry();
+        notary = new QoreStamp();
         vm.stopBroadcast();
-        console.log("StampRegistry deployed at:", address(registry));
+        console.log("QoreStamp deployed at:", address(notary));
     }
 }

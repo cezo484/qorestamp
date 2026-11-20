@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QoreStamp</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  h1 { font-size: 1.6rem; margin-bottom: 0; }
+  .sub { color: gray; margin-top: 0.2rem; }
+  section { border: 1px solid gray; border-radius: 8px; padding: 1rem; margin: 1.2rem 0; }
+  label { display: block; margin: 0.6rem 0 0.2rem; font-weight: 600; }
+  input[type="text"] { width: 100%; box-sizing: border-box; padding: 0.4rem; font: inherit; }
+  button { padding: 0.5rem 1rem; font: inherit; margin-top: 0.8rem; cursor: pointer; }
+  code, .mono { font-family: ui-monospace, monospace; word-break: break-all; }
+  .result { background: rgba(128, 128, 128, 0.15); border-radius: 6px; padding: 0.8rem; margin-top: 0.8rem; }
+  .result p { margin: 0.3rem 0; }
+  .error { color: #b00020; }
+  .ok { color: #1a7f37; }
+  #drop { border: 2px dashed gray; border-radius: 8px; padding: 1.5rem; text-align: center; cursor: pointer; }
+  #drop.over { border-color: #1a7f37; }
+</style>
+</head>
+<body>
+<h1>QoreStamp</h1>
+<p class="sub">Stamp a document hash on QoreChain. The file is hashed in this browser and never uploaded.</p>
+
+<section>
+  <h2>1. Hash a document</h2>
+  <div id="drop">Drop a file here, or click to pick one</div>
+  <input type="file" id="file" hidden>
+  <label for="label">Label stored with the stamp (optional, at most 64 bytes)</label>
+  <input type="text" id="label" maxlength="64" placeholder="e.g. signed agreement">
+  <div id="hashResult" class="result" hidden>
+    <p>File: <span id="fileName" class="mono"></span></p>
+    <p>SHA-256: <span id="fileHash" class="mono"></span></p>
+    <p>Stamp calldata: <span id="stampData" class="mono"></span></p>
+    <p>Send a transaction to the QoreStamp contract with that calldata to stamp this hash. The contract address is in section 3.</p>
+  </div>
+</section>
+
+<section>
+  <h2>2. Verify a hash</h2>
+  <label for="verifyHash">Document hash (64 hex characters, with or without 0x)</label>
+  <input type="text" id="verifyHash" placeholder="0x...">
+  <button id="useFileHash" type="button">Use the hash from section 1</button>
+  <button id="verifyBtn" type="button">Verify on chain</button>
+  <div id="verifyResult" class="result" hidden></div>
+</section>
+
+<section>
+  <h2>3. Connection</h2>
+  <label for="rpc">EVM JSON-RPC URL</label>
+  <input type="text" id="rpc" value="https://evm-testnet.qore.host">
+  <label for="contract">QoreStamp contract address</label>
+  <input type="text" id="contract" value="0x0edcf72466d381573d39919af1749ef3c91a4828">
+  <p class="sub">Default RPC is the QoreChain Diana testnet, chain id 9800, and the contract above is the one deployed there on 16 Nov 2026. Reads need no wallet and no key.</p>
+</section>
+
+<script type="module">
+import { normalizeHash, stampCalldata } from '../src/abi.js';
+import { queryStamp } from '../src/rpc.js';
+
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('file');
+const hashResult = document.getElementById('hashResult');
+const verifyResult = document.getElementById('verifyResult');
+const verifyHashInput = document.getElementById('verifyHash');
+let currentHash = null;
+
+async function hashFile(file) {
+  const bytes = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  return '0x' + hex;
+}
+
+function refreshCalldata() {
+  if (!currentHash) return;
+  try {
+    document.getElementById('stampData').textContent =
+      stampCalldata(currentHash, document.getElementById('label').value);
+  } catch (err) {
+    document.getElementById('stampData').textContent = 'Error: ' + err.message;
+  }
+}
+
+async function handleFile(file) {
+  if (!file) return;
+  currentHash = await hashFile(file);
+  document.getElementById('fileName').textContent = file.name + ' (' + file.size + ' bytes)';
+  document.getElementById('fileHash').textContent = currentHash;
+  refreshCalldata();
+  hashResult.hidden = false;
+}
+
+document.getElementById('label').addEventListener('input', refreshCalldata);
+
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', (e) => {
+  e.preventDefault();
+  drop.classList.remove('over');
+  handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+document.getElementById('useFileHash').addEventListener('click', () => {
+  if (currentHash) verifyHashInput.value = currentHash;
+});
+
+document.getElementById('verifyBtn').addEventListener('click', async () => {
+  const rpc = document.getElementById('rpc').value.trim();
+  const contract = document.getElementById('contract').value.trim();
+  verifyResult.hidden = false;
+  try {
+    const hash = normalizeHash(verifyHashInput.value);
+    const stamp = await queryStamp(rpc, contract, hash);
+    if (!stamp.exists) {
+      verifyResult.innerHTML = '<p class="error">No stamp found for this hash.</p>';
+      return;
+    }
+    verifyResult.innerHTML =
+      '<p class="ok">Stamped.</p>' +
+      '<p>Stamper: <span class="mono">' + stamp.stamper + '</span></p>' +
+      '<p>Stamped at: ' + new Date(stamp.timestamp * 1000).toISOString() + '</p>' +
+      '<p>Block: ' + stamp.blockNumber + '</p>' +
+      '<p>Label: ' + (stamp.label || '(none)') + '</p>';
+  } catch (err) {
+    verifyResult.innerHTML = '<p class="error">Error: ' + err.message + '</p>';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 // Scripted demo. Runs fully offline: it hashes a sample document, builds
 // the stamp calldata, then queries a small stub JSON-RPC server that
-// answers like a StampRegistry contract would.
+// answers like a QoreStamp contract would.
 //
 // For a live demo against a local chain, see "Local demo (anvil)" in
 // README.md.
@@ -13,12 +13,17 @@ import { sha256File } from './hash.js';
 import { stampCalldata, verifyCalldata } from './abi.js';
 import { getChainId, queryStamp } from './rpc.js';
 
-// A canned verify() answer: stamper 0xA11CE, timestamp 1800000000, exists.
+// A canned verify() answer: stamper 0xA11CE, timestamp 1800000000,
+// block 10385404, label "demo stamp", exists.
 const CANNED_VERIFY_RESULT =
   '0x' +
   '000000000000000000000000000000000000000000000000000000000000a11c' +
   '000000000000000000000000000000000000000000000000000000006b49d200' +
-  '0000000000000000000000000000000000000000000000000000000000000001';
+  '00000000000000000000000000000000000000000000000000000000009e77fc' +
+  '00000000000000000000000000000000000000000000000000000000000000a0' +
+  '0000000000000000000000000000000000000000000000000000000000000001' +
+  '000000000000000000000000000000000000000000000000000000000000000a' +
+  '64656d6f207374616d7000000000000000000000000000000000000000000000';
 
 function startStubServer() {
   return new Promise((resolve) => {
@@ -64,6 +69,8 @@ try {
   const stamp = await queryStamp(url, '0x0000000000000000000000000000000000000001', hash);
   console.log('   stamper:  ' + stamp.stamper);
   console.log('   stamped:  ' + new Date(stamp.timestamp * 1000).toISOString());
+  console.log('   block:    ' + stamp.blockNumber);
+  console.log('   label:    ' + stamp.label);
   console.log('   exists:   ' + stamp.exists);
 } finally {
   server.close();

@@ -8,6 +8,10 @@ export const MAINNET_RPC_URL = 'https://evm.qore.host';
 export const TESTNET_CHAIN_ID = 9800;
 export const MAINNET_CHAIN_ID = 9801;
 
+// QoreStamp deployed on the QoreChain Diana testnet (chain id 9800),
+// 16 Nov 2026. Deploy tx 0xcdb740343394f59e899ae5b5744599332ce52acb68f25d8d9e06f558ac615310.
+export const DEPLOYED_TESTNET_CONTRACT = '0x0edcf72466d381573d39919af1749ef3c91a4828';
+
 let nextId = 1;
 
 export async function rpcCall(url, method, params = [], timeoutMs = 15000) {
@@ -53,8 +57,8 @@ export async function getBalance(url, address) {
 }
 
 /**
- * Query verify(hash) on a deployed StampRegistry with eth_call.
- * Returns { stamper, timestamp, exists }.
+ * Query verify(hash) on a deployed QoreStamp with eth_call.
+ * Returns { stamper, timestamp, blockNumber, label, exists }.
  */
 export async function queryStamp(url, contract, hash) {
   const result = await rpcCall(url, 'eth_call', [

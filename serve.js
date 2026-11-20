@@ -1,5 +1,7 @@
-// Tiny static server for the web UI. Serves the project root so the page
-// can import the same code the CLI uses. No dependencies.
+// Tiny static server for the plain-JavaScript web UI (web/vanilla.html).
+// Serves the project root so the page can import the same code the CLI
+// uses. No dependencies. The React dApp in web/src is served by Vite
+// instead (cd web && npm run dev).
 
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -20,7 +22,7 @@ const TYPES = {
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
-    let path = url.pathname === '/' ? '/web/index.html' : decodeURIComponent(url.pathname);
+    let path = url.pathname === '/' ? '/web/vanilla.html' : decodeURIComponent(url.pathname);
     if (path.includes('..')) {
       res.writeHead(400);
       res.end('bad path');

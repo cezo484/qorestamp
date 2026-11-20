@@ -32,10 +32,27 @@ Developer Fest's Best AI-Native Build award asks.
 - **Verified** the work: `forge build` clean, `forge test` 10/10 passing,
   `npm run build` for the web app, and the window helper confirmed against
   the live testnet (`npm run window status` reads the account, its PQC key
-  status and its window). The testnet deployment itself is prepared and
-  scripted (register key → open hybrid-signed EVM window → deploy → stamp);
-  it runs as soon as the deployer wallet is funded from the dashboard faucet
-  — see `SUBMISSION.md`. No transaction hash is claimed before it exists.
+  status and its window).
+- **Deployed** to the Diana testnet on 16 November 2026, once the deployer
+  wallet was funded from the dashboard faucet: registered the ML-DSA-87
+  post-quantum key, opened a hybrid-signed EVM authorisation window (1200
+  blocks, 10 transactions), deployed the contract, sent a hybrid-signed
+  attestation transaction, stamped the first document, and sent the fest
+  proof transaction (`bbqd-link:` memo) that links the testnet address to
+  the project on build.qorechain.io. Every transaction hash in the README
+  is real and was verified on the testnet explorer or the EVM RPC — see
+  `deployed.json`, `attestation.json`, `stamp.json`, `proof.json` and
+  `SUBMISSION.md`.
+- **Extended** the project on 19 November with a dependency-free command
+  line tool and a vanilla web page (`src/cli.js`, `src/abi.js`,
+  `src/rpc.js`, `web/vanilla.html`), plus a second, simpler contract
+  variant (`contracts/StampRegistry.sol`) kept for its tests.
+- **Finished** the submission on 21 November: retargeted the CLI and the
+  vanilla page from the StampRegistry interface to the deployed QoreStamp
+  interface (labelled stamps, five-field verify), verified the CLI against
+  the live testnet contract end to end, re-ran the local anvil demo, and
+  rewrote the README with the real deployment evidence. Test counts after
+  the finishing pass: `forge test` 19/19, `npm test` 33/33.
 
 ## What the AI did not do
 
@@ -53,5 +70,7 @@ Research the docs first, then scaffold from the official templates, then
 build in small verifiable steps (contract → tests → deploy scripts → front
 end → testnet proof), running the test suite and builds after each step. Every
 on-chain claim in the README is backed by a real transaction hash on the
-testnet explorer — no fabricated evidence. Until the deployment lands, the
-README's deployment section says so explicitly instead of claiming hashes.
+testnet explorer or the EVM RPC — no fabricated evidence. No transaction hash
+was claimed before it existed: until the deployment landed on 16 November,
+the README's deployment section said so explicitly instead of claiming
+hashes.

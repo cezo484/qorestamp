@@ -8,18 +8,27 @@
 import { existsSync } from 'node:fs';
 import { sha256File } from './hash.js';
 import { normalizeHash, stampCalldata } from './abi.js';
-import { getBlockNumber, getChainId, queryStamp, TESTNET_RPC_URL } from './rpc.js';
+import {
+  DEPLOYED_TESTNET_CONTRACT,
+  getBlockNumber,
+  getChainId,
+  queryStamp,
+  TESTNET_RPC_URL,
+} from './rpc.js';
 
 const HELP = `QoreStamp: stamp a document hash on QoreChain, verify it later.
 
 Usage:
   node src/cli.js hash <file> [--json]
-  node src/cli.js stamp <file> [--contract 0x...] [--rpc URL]
+  node src/cli.js stamp <file> [--label "text"] [--contract 0x...] [--rpc URL]
   node src/cli.js verify <file | 0xhash> [--contract 0x...] [--rpc URL] [--json]
   node src/cli.js info [--rpc URL]
 
 Options:
-  --contract  StampRegistry address. Defaults to QORESTAMP_CONTRACT.
+  --label     Short label stored with the stamp (at most 64 bytes).
+              Defaults to empty.
+  --contract  QoreStamp address. Defaults to QORESTAMP_CONTRACT, then to
+              the contract deployed on the QoreChain testnet.
   --rpc       EVM JSON-RPC URL. Defaults to QORESTAMP_RPC or the QoreChain
               testnet endpoint https://evm-testnet.qore.host (chain id 9800).
 
@@ -33,12 +42,14 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === '--json') {
       flags.json = true;
-    } else if (arg === '--contract' || arg === '--rpc') {
+    } else if (arg === '--contract' || arg === '--rpc' || arg === '--label') {
       flags[arg.slice(2)] = argv[++i];
     } else if (arg.startsWith('--contract=')) {
       flags.contract = arg.slice('--contract='.length);
     } else if (arg.startsWith('--rpc=')) {
       flags.rpc = arg.slice('--rpc='.length);
+    } else if (arg.startsWith('--label=')) {
+      flags.label = arg.slice('--label='.length);
     } else if (arg.startsWith('--')) {
       throw new Error('unknown option: ' + arg);
     } else {
@@ -53,14 +64,7 @@ function rpcUrl(flags) {
 }
 
 function contractAddress(flags) {
-  const address = flags.contract || process.env.QORESTAMP_CONTRACT;
-  if (!address) {
-    throw new Error(
-      'no contract address. Pass --contract 0x... or set QORESTAMP_CONTRACT. ' +
-      'Deploy first; see README.md.',
-    );
-  }
-  return address;
+  return flags.contract || process.env.QORESTAMP_CONTRACT || DEPLOYED_TESTNET_CONTRACT;
 }
 
 /** A path is a file when it exists on disk; otherwise it must be a hash. */
@@ -83,17 +87,19 @@ async function cmdHash(target, flags) {
 
 async function cmdStamp(target, flags) {
   const hash = await sha256File(target);
-  const data = stampCalldata(hash);
-  const contract = flags.contract || process.env.QORESTAMP_CONTRACT || '<contract-address>';
+  const label = flags.label || '';
+  const data = stampCalldata(hash, label);
+  const contract = contractAddress(flags);
   const rpc = rpcUrl(flags);
   console.log('file:     ' + target);
   console.log('sha256:   ' + hash);
+  console.log('label:    ' + (label || '(none)'));
   console.log('calldata: ' + data);
   console.log('');
-  console.log('To stamp it, send a transaction to the StampRegistry contract');
+  console.log('To stamp it, send a transaction to the QoreStamp contract');
   console.log('with this calldata. One way, with cast:');
   console.log('');
-  console.log('  cast send ' + contract + ' "stamp(bytes32)" ' + hash);
+  console.log('  cast send ' + contract + ' "stamp(bytes32,string)" ' + hash + ' "' + label + '"');
   console.log('    --rpc-url ' + rpc + ' --private-key $PRIVATE_KEY');
   console.log('');
   console.log('On QoreChain the sending account also needs a registered');
@@ -120,6 +126,8 @@ async function cmdVerify(target, flags) {
   console.log('result:   stamped');
   console.log('stamper:  ' + stamp.stamper);
   console.log('stamped:  ' + new Date(stamp.timestamp * 1000).toISOString());
+  console.log('block:    ' + stamp.blockNumber);
+  console.log('label:    ' + (stamp.label || '(none)'));
 }
 
 async function cmdInfo(flags) {
